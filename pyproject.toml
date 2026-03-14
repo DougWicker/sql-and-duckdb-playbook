@@ -1,0 +1,14 @@
+[project]
+name = "sql-and-duckdb-playbook"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.5.0",
+    "jupyterlab>=4.5.6",
+    "matplotlib>=3.10.8",
+    "pandas>=3.0.1",
+    "psycopg2-binary>=2.9.11",
+    "pydantic-settings>=2.13.1",
+]

@@ -90,6 +90,39 @@ sql-and-duckdb-playbook/
 
 > **Signal:** A reproducible data pipeline as the foundation of a SQL project demonstrates engineering discipline, not just SQL knowledge.
 
+#### Implementation Notes — Phase 0 Complete
+
+**`config.py`**
+A `pydantic-settings` `BaseSettings` class that reads `POSTGRES_*` variables from `.env` at import time. Key design decisions:
+- **Fail-fast validation** — if any variable is missing, `pydantic-settings` raises a `ValidationError` with a clear message before any database call happens.
+- **`dsn` computed property** — builds a libpq connection string from the individual fields. This single string works with `psycopg2.connect()`, DuckDB's `ATTACH '...' AS pg (TYPE POSTGRES)`, and any other libpq-compatible driver. Nothing duplicated.
+- **Module-level singleton** — `settings = Settings()` at the bottom means every import gets the same validated instance.
+
+**`docker-compose.yml`**
+PostgreSQL 16 with three important details:
+- **Variable substitution** — credentials come from `.env`, not hardcoded.
+- **Health check** — uses `pg_isready` so `docker compose ps` shows `healthy` only when Postgres is actually accepting connections.
+- **Named volume** — `postgres_data` persists across container restarts; `docker compose down -v` deletes it for a clean slate.
+
+**`scripts/generate_data.py`**
+Two exports in one pass:
+1. **Flat Parquet files** — one `.parquet` per table, written to `data/parquet/` with Snappy compression.
+2. **Year-partitioned `orders`** — exported to `data/parquet/orders_partitioned/year=YYYY/` (Hive-compatible layout). DuckDB skips entire year-directories when filtering by year — demonstrated in Phase 5.
+
+Uses an in-memory DuckDB connection — no external download, `INSTALL tpch` only downloads once per machine.
+
+**`scripts/seed_postgres.py`**
+Bulk-load strategy: DuckDB reads each Parquet file → rows written to a `StringIO` buffer as tab-separated text → streamed into PostgreSQL via `psycopg2.copy_from` (`COPY … FROM STDIN`). Fastest single-connection load path in psycopg2. DuckDB's Python type system handles all type conversions (`datetime.date` → ISO-8601, `decimal.Decimal` → exact decimal string). Runs the DDL first, making it safe to re-run.
+
+**`sql/schema/tpch_tables.sql`**
+Full DDL in FK-safe creation order. `DECIMAL(15,2)` for money throughout (matches TPC-H spec). Valid values for `CHAR(1)` flag columns annotated inline. `CASCADE` on all drops so the file is idempotent.
+
+**`sql/schema/seed_employees.sql`**
+10-row `dim_employee` with a self-referencing `manager_id` — 4-level org hierarchy (CEO → VP → Manager → IC). Chosen over TPC-H because TPC-H's hierarchy is too shallow to meaningfully demonstrate recursive CTEs. The ASCII org tree is documented in the file header so Phase 2 `depth` and `path` outputs are easy to verify.
+
+**`notebooks/01_setup_and_data.ipynb`**
+Six sections: prerequisites checklist, why TPC-H was chosen, ASCII schema ER diagram, row counts + Parquet file sizes, DuckDB `SUMMARIZE` on `lineitem` and `orders`, sample data (raw `lineitem` + denormalised join view), PostgreSQL connectivity check via `pg_total_relation_size`.
+
 ---
 
 ### Phase 1 — Window Functions (PostgreSQL)

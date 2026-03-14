@@ -1,0 +1,34 @@
+# PostgreSQL 16 — sql-and-duckdb-playbook
+#
+# Usage:
+#   docker compose up -d          # start (detached)
+#   docker compose down           # stop and remove container (data volume persists)
+#   docker compose down -v        # stop and delete the persistent volume
+#
+# The service reads credentials from your .env file via variable substitution.
+# Copy .env.example → .env and fill in values before starting.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: sql_playbook_postgres
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      # Host port is configurable; defaults to 5432 if POSTGRES_PORT is unset.
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Named volume keeps data across container restarts.
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # pg_isready returns 0 only when the server is accepting connections.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
