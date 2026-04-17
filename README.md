@@ -50,7 +50,7 @@ sql-and-duckdb-playbook/
 │   ├── 01_setup_and_data.ipynb     # ✅ Phase 0: schema, row counts, SUMMARIZE
 │   ├── 02_window_functions.ipynb   # ✅ Phase 1: ranking, lag/lead, running totals
 │   ├── 03_ctes_and_recursive.ipynb # ✅ Phase 2: chained CTEs, MATERIALIZED, recursive
-│   ├── 04_explain_plans.ipynb
+│   ├── 04_explain_plans.ipynb      # ✅ Phase 3: Seq/Index scan, ANALYZE, join strategies
 │   ├── 05_duckdb_vs_postgres.ipynb
 │   ├── 06_duckdb_parquet.ipynb
 │   └── 07_benchmarking.ipynb
@@ -77,9 +77,9 @@ sql-and-duckdb-playbook/
 | 0 | Scaffolding & Data Pipeline | ✅ Complete |
 | 1 | Window Functions (PostgreSQL) | ✅ Complete |
 | 2 | CTEs & Recursive Queries | ✅ Complete |
-| 3 | EXPLAIN Plans & Indexing | Planned |
-| 4 | DuckDB: Feature Parity + Unique Syntax | Planned |
-| 5 | DuckDB + Parquet Querying | Planned |
-| 6 | Benchmarking: PostgreSQL vs DuckDB | Planned |
+| 3 | EXPLAIN Plans & Indexing | ✅ Complete |
+| 4 | DuckDB: Feature Parity + Unique Syntax | Complete ✅ |
+| 5 | DuckDB + Parquet Querying | Complete ✅ |
+| 6 | Benchmarking: PostgreSQL vs DuckDB | Complete ✅ |
 
 Part of the [DougWicker Data Engineering Portfolio](https://github.com/DougWicker/DougWicker).
